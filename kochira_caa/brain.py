@@ -42,7 +42,7 @@ class BalancedScorer(Scorer):
         return 0.5 if quotes % 2 else 1.0
 
 def load_brain(ctx):
-    ctx.storage.brains[ctx.config.brain_file] = Brain(ctx.config.brain_file, check_same_thread=False)
+    ctx.storage.brains[ctx.config.brain_file] = Brain(ctx.config.brain_file)
 
     scorer = ctx.storage.brains[ctx.config.brain_file].scorer
     scorer.score = scorergroup_score.__get__(scorer, ScorerGroup)
