@@ -14,6 +14,8 @@ from kochira import config
 from kochira.service import Service, Config
 from kochira.auth import requires_permission
 
+TRUNCATED_MAX = 134  # 140 - '...' - '...'
+
 service = Service(__name__, __doc__)
 
 @service.config
@@ -68,8 +70,17 @@ def tweet(ctx, message):
 
     Tweet the given text.
     """
+    
+    if len(message) > TRUNCATED_MAX:
+        messages = [message[:TRUNCATED_MAX] + '...']
+        for i in xrange(len(message) / TRUNCATED_MAX):
+            messages.append('...' + message[TRUNCATED_MAX * i : TRUNCATED_MAX * (i + 1)] + '...')
+        messages.append('...' + message[TRUNCATED_MAX * (i + 1):])
+    else:
+        messages = [message]
     try:
-        ctx.storage.api.statuses.update(status=message)
+        for message in messages:
+            ctx.storage.api.statuses.update(status=message)
     except TwitterHTTPError as e:
         for error in e.response_data['errors']:
             ctx.respond("Twitter returned error: {}".format(error['message']))
@@ -127,9 +138,17 @@ def reply(ctx, id, message=None):
         message = user + brain(text, max_len=140-len(user))
     else:
         message = "@{} {}".format(tweet["user"]["screen_name"], message)
-
+        
+    if len(message) > TRUNCATED_MAX:
+        messages = [message[:TRUNCATED_MAX] + '...']
+        for i in xrange(len(message) / TRUNCATED_MAX):
+            messages.append('...' + message[TRUNCATED_MAX * i : TRUNCATED_MAX * (i + 1)] + '...')
+        messages.append('...' + message[TRUNCATED_MAX * (i + 1):])
+    else:
+        messages = [message]
     try:
-        api.statuses.update(status=message, in_reply_to_status_id=id)
+        for message in messages:
+            api.statuses.update(status=message, in_reply_to_status_id=id)
     except TwitterHTTPError as e:
         for error in e.response_data['errors']:
             ctx.respond("Twitter returned error: {}".format(error['message']))
