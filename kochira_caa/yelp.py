@@ -14,8 +14,8 @@ service = Service(__name__, __doc__)
 
 @service.shutdown
 def reload_generators(ctx):
-    ctx.bot.unload_service(".textproc.generators")
-    ctx.bot.load_service(".textproc.generators", reload=True)
+    if 'kochira.services.textproc.generators' in ctx.bot.services:
+        ctx.bot.load_service(".textproc.generators", reload=True)
 
 
 yelp = partial(run_generator,
