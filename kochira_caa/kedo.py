@@ -4,11 +4,14 @@ kedo module.
 Allows mortals to learn from the tome of kedo.
 """
 
+import os
 import re
 
+from collections import defaultdict
 from random import choice, randint, random
 
 from peewee import CharField, fn
+from tornado.web import RequestHandler, Application
 
 from kochira.auth import requires_permission
 from kochira.db import Model
@@ -87,6 +90,32 @@ def kedolist(ctx):
         things=", ".join([x.topic for x in KedoBit.select().group_by(KedoBit.topic)])
     ))
 
+
+class IndexHandler(RequestHandler):
+    def get(self):
+        kedos = defaultdict(list)
+        for bit in KedoBit.select():
+            kedos[bit.topic].append(bit.knowledge)
+
+        self.render("../../../../../../kochira_caa/kochira_caa/templates/kedo.html",
+                    kedos=kedos)
+
+
+def make_application(settings):
+    return Application([
+        (r"/", IndexHandler)
+    ], **settings)
+
+
+@service.hook("services.net.webserver")
+def webserver_config(ctx):
+    return {
+        "name": "kedo.txt",
+        "title": "kedo.txt",
+        "application_factory": make_application
+    }
+
+
 @service.command(r".*\[in\].*")
 def lnkd_simulator_2016(ctx):
     """
@@ -144,25 +173,3 @@ def spongebob(ctx, text=None):
 
     ctx.message(new_text)
 
-RIN_REGEX = re.compile(r"(?:\b([A-Za-z0-9_'-]+) )?\b([A-Za-z0-9_'-]+) in([A-Za-z0-9_-]+)")
-RIN_IGNORE = set(['to', 'ternet'])
-RIN_CACHE = []
-
-@service.hook("channel_message")
-def rin(ctx, target, origin, message):
-    """
-    <kedo> nice rinnovation! xDD
-    """
-    ins = RIN_REGEX.findall(message)
-    if ins and random() < 0.5:
-        far_prev, prev, in_word = choice(ins)
-
-        if in_word not in RIN_IGNORE:
-            if in_word not in RIN_CACHE:
-                prev = 'a' if prev == 'an' else prev
-                prev = (far_prev + ' ' + prev) if far_prev and random() < 0.4 else prev
-                ctx.message("<kedo> {} rin{} xDD".format(prev, in_word))
-
-                RIN_CACHE.insert(0, in_word)
-                if len(RIN_CACHE) > 3:
-                    RIN_CACHE.pop()
