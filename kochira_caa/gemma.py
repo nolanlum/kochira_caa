@@ -41,7 +41,12 @@ def big_dog(ctx, text):
             ),
             contents=f"<{ctx.origin}> {text}",
         )
-        ctx.respond(response.text)
+
+        # I'm too cheap to spend extra tokens making sure this doesn't happen
+        if response.text.startswith(ctx.origin):
+            ctx.message(response.text)
+        else:
+            ctx.respond(response.text)
     except errors.APIError as e:
         ctx.respond(f"Gemini returned error: {e.code}: {e.message}")
     except Exception as e:

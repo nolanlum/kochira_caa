@@ -1,0 +1,14 @@
+{% extends "../../../kochira/kochira/services/net/webserver/templates/_layout.html" %}
+
+{% block title %}kedo.txt{% end %}
+
+{% block body %}
+<pre>
+{% for topic, bits in kedos.items() %}
+<b>{{ topic.title() }}</b>
+{% for quote in bits %}
+{{ quote }}
+{% end %}
+{% end %}
+</pre>
+{% end %}
