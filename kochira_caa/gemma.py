@@ -59,18 +59,25 @@ def config_with_instructions(system_instruction, thinking_level):
         system_instruction=system_instruction,
     )
 
-def respond(ctx, text, config, print_tokens=None):
+def respond(ctx, name, text, config, print_tokens=None):
     reset_daily_quota(ctx)
 
     if ctx.config.token_quota > 0 and ctx.storage.quota.tokens_used > ctx.config.token_quota:
         ctx.respond("Daily token quota exceeded, try again tomorrow.")
         return
 
+    contents = f"<{ctx.origin}> {name}: {text}"
+    if len(ctx.client.backlogs.get(ctx.target, [])) > 1:
+        contents = "\n".join(
+            "<{}> {}".format(m[0] if m[0] != ctx.client.nickname else name, m[1])
+            for m in reversed(list(ctx.client.backlogs[ctx.target])[1:])
+        ) + contents
+
     try:
         response = ctx.storage.gemini.models.generate_content(
             model="gemini-3-flash-preview",
             config=config,
-            contents=f"<{ctx.origin}> {text}",
+            contents=contents,
         )
         record_quota_usage(ctx, response.usage_metadata.total_token_count)
 
@@ -101,14 +108,14 @@ def big_dog(ctx, text, thinking=None, verbose=None):
     instructions = textwrap.dedent(f"""
         You are an IRC bot user called Big Dog. You are chatting in {ctx.target}.
         A user has mentioned you in a message, asking for a response.
-        The message is provided to you in the format <username> message.
-        Generate only a response message, in no more than 3 lines, preferably 1.
+        Recent messages are provided to you in the format <username> message.
+        Respond to the most recent message, outputting the message only, in no more than 3 lines, preferably 1.
     """)
 
-    respond(ctx, text, config=config_with_instructions(instructions, thinking_level), print_tokens=verbose)
+    respond(ctx, 'Big Dog', text, config=config_with_instructions(instructions, thinking_level), print_tokens=verbose)
 
 @service.command("haro(?P<chan>-chan)?(?P<kun>-kun)?(?P<verbose>!)? (?P<text>.+)")
-def haro(ctx, text, chan='', kun='', verbose=None):
+def haro(ctx, text, chan=None, kun=None, verbose=None):
     """
     Haro
 
@@ -116,14 +123,18 @@ def haro(ctx, text, chan='', kun='', verbose=None):
     """
     thinking = 0 + (1 if chan else 0) + (1 if kun else 0)
     thinking_level = ['minimal', 'low', 'medium'][thinking]
+
+    chan = chan or ''
+    kun = kun or ''
+
     instructions = textwrap.dedent(f"""
         You are a helpful IRC bot user called Haro{chan}{kun}. You are chatting in {ctx.target}.
         A user has mentioned you in a message, asking for a response.
-        The message is provided to you in the format <username> message.
-        Generate only a response message, in no more than 3 lines, preferably 1.
+        Recent messages are provided to you in the format <username> message.
+        Respond to the most recent message, outputting the message only, in no more than 3 lines, preferably 1.
     """)
 
-    respond(ctx, text, config=config_with_instructions(instructions, thinking_level), print_tokens=verbose)
+    respond(ctx, f"Haro{chan}{kun}", text, config=config_with_instructions(instructions, thinking_level), print_tokens=verbose)
 
 @service.command("!tokenusage")
 def token_usage(ctx):
