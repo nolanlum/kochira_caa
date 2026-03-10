@@ -33,7 +33,7 @@ async def _np(ctx):
         return None
     return (artist[0] if artist else "", title[0] if title else "")
 
-@service.command("^\.np$")
+@service.command(r"^\.np$")
 @requires_permission("caa_radio")
 async def now_playing(ctx):
     """

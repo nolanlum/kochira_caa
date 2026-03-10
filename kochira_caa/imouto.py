@@ -43,7 +43,7 @@ def imouto(ctx, text=None):
 
         _, text = ctx.client.backlogs[ctx.target][1]
 
-    text = re.sub("\w\w\w\w\w+", imouto_factory('imouto'), text)
+    text = re.sub(r"\w\w\w\w\w+", imouto_factory('imouto'), text)
     ctx.message(text)
 
 
@@ -60,5 +60,5 @@ def kimchi(ctx, text=None):
 
         _, text = ctx.client.backlogs[ctx.target][1]
 
-    text = re.sub("\w\w\w\w\w+", imouto_factory('nida'), text)
+    text = re.sub(r"\w\w\w\w\w+", imouto_factory('nida'), text)
     ctx.message(text)

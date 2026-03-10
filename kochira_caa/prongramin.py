@@ -6,7 +6,7 @@ Helps you get to work more on time, probably.
 
 import codecs
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 
 import humanize
 import requests
@@ -40,7 +40,7 @@ def next_n_times(ctx):
         if mvj['LineRef'] == 'N'
     ])
     planned_n_stop_minutes = [
-        str(int((stop_time - datetime.utcnow()).total_seconds() // 60))
+        str(int((stop_time - datetime.now(timezone.utc).replace(tzinfo=None)).total_seconds() // 60))
         for stop_time in planned_n_stop_times
     ]
 
