@@ -1,5 +1,5 @@
-kochira
-twitter>=1.17
+kochira>=0.1
+requests
 markovify
 nltk
 google-genai

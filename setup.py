@@ -20,7 +20,7 @@ with open('requirements.txt', 'r') as f:
             install_requires.append(requirement)
 
 setup(name="kochira_caa",
-      version="0.0",
+      version="0.1",
       description="more kochira services",
       author="",
       author_email="",
